@@ -37,6 +37,10 @@ def ensure_ml_artifacts():
 
 # Preload on import for serverless
 ensure_ml_artifacts()
+try:
+    init_db()
+except Exception as e:
+    print(f"DB init warning on startup: {e}")
 
 
 @asynccontextmanager
@@ -207,7 +211,7 @@ def export_history_csv(db: Session = Depends(get_db)):
     from fastapi.responses import Response
 
     rows = db.query(PredictionRecord).order_by(PredictionRecord.created_at.desc(), PredictionRecord.id.desc()).all()
-    output = io.StringIO()
+    output = id.StringIO()
     writer = csv.writer(output)
     writer.writerow([
         "Record ID", "Date", "Age", "Gender", "Total Bilirubin (mg/dL)",
