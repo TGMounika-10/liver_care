@@ -3,9 +3,9 @@ import {
   FileText, Download, Lightbulb, Loader2, Search,
   Calendar, TrendingUp, TrendingDown, Filter,
   ChevronLeft, ChevronRight, BarChart3, Activity,
-  Users, ArrowUpDown, RefreshCcw, Heart
+  Users, ArrowUpDown, RefreshCcw, Heart, Trash2, FileSpreadsheet
 } from 'lucide-react';
-import { fetchHistory, downloadReportPdf, SAMPLE_HISTORY } from '../services/api';
+import { fetchHistory, downloadReportPdf, deleteHistoryRecord, exportHistoryCsv, SAMPLE_HISTORY } from '../services/api';
 
 export default function Reports() {
   const [records, setRecords] = useState([]);
@@ -33,6 +33,16 @@ export default function Reports() {
     try { await downloadReportPdf(record.id, record); }
     catch (err) { console.error(err); }
     finally { setDownloadingId(null); }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm(`Are you sure you want to delete prediction record #${id}?`)) return;
+    try {
+      await deleteHistoryRecord(id);
+      setRecords((prev) => prev.filter((r) => r.id !== id));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   // Computed filtered & sorted list
@@ -82,10 +92,14 @@ export default function Reports() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button onClick={loadData} className="btn-secondary text-xs">
             <RefreshCcw className="w-3.5 h-3.5 text-slate-400"/>
             <span>Refresh</span>
+          </button>
+          <button onClick={exportHistoryCsv} className="btn-secondary text-xs">
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600"/>
+            <span>Export CSV</span>
           </button>
           <button onClick={() => records.length > 0 && handleDownload(records[0])}
                   className="btn-primary text-xs">
@@ -248,17 +262,26 @@ export default function Reports() {
                         </div>
                       </td>
                       <td className="px-5 py-4 text-center">
-                        <button
-                          onClick={() => handleDownload(item)}
-                          disabled={downloadingId === item.id}
-                          title="Download PDF Report"
-                          className="w-8 h-8 rounded-lg bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-700 inline-flex items-center justify-center transition-colors disabled:opacity-50"
-                        >
-                          {downloadingId === item.id
-                            ? <Loader2 className="w-4 h-4 animate-spin"/>
-                            : <Download className="w-4 h-4"/>
-                          }
-                        </button>
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => handleDownload(item)}
+                            disabled={downloadingId === item.id}
+                            title="Download PDF Report"
+                            className="w-8 h-8 rounded-lg bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-700 inline-flex items-center justify-center transition-colors disabled:opacity-50"
+                          >
+                            {downloadingId === item.id
+                              ? <Loader2 className="w-4 h-4 animate-spin"/>
+                              : <Download className="w-4 h-4"/>
+                            }
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            title="Delete Record"
+                            className="w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 inline-flex items-center justify-center transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4"/>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

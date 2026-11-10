@@ -48,6 +48,7 @@ class PredictionResponse(BaseModel):
     result: str
     probability: float
     risk_level: str
+    stage: Optional[str] = None
     database_backend: str
 
 

@@ -180,29 +180,40 @@ export default function PatientDetails() {
     setApiError(null);
   };
 
-  // Preset loading for easy evaluation / viva demonstration
+  // Preset loading for real-time testcases & evaluation
   const handleLoadSample = (type) => {
-    if (type === 'low') {
+    if (type === 'healthy') {
       setFormData({
-        age: '52',
+        age: '28',
         gender: 'Female',
-        total_bilirubin: '1.1',
-        direct_bilirubin: '0.4',
-        albumin: '3.8',
-        alkaline_phosphatase: '90',
-        sgot: '42',
-        cholesterol: '170',
+        total_bilirubin: '0.7',
+        direct_bilirubin: '0.2',
+        albumin: '4.3',
+        alkaline_phosphatase: '65',
+        sgot: '20',
+        cholesterol: '155',
+      });
+    } else if (type === 'moderate') {
+      setFormData({
+        age: '48',
+        gender: 'Male',
+        total_bilirubin: '1.6',
+        direct_bilirubin: '0.6',
+        albumin: '3.4',
+        alkaline_phosphatase: '150',
+        sgot: '52',
+        cholesterol: '210',
       });
     } else {
       setFormData({
-        age: '45',
+        age: '58',
         gender: 'Male',
-        total_bilirubin: '3.8',
-        direct_bilirubin: '1.9',
-        albumin: '2.7',
-        alkaline_phosphatase: '240',
-        sgot: '120',
-        cholesterol: '230',
+        total_bilirubin: '4.8',
+        direct_bilirubin: '2.4',
+        albumin: '2.4',
+        alkaline_phosphatase: '310',
+        sgot: '145',
+        cholesterol: '140',
       });
     }
     setErrors({});
@@ -268,22 +279,29 @@ export default function PatientDetails() {
           </div>
         </div>
 
-        {/* Quick Demo Fill Buttons */}
+        {/* Quick Demo Fill Buttons for Real-Time Testcases */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Quick Fill:</span>
+          <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Testcases:</span>
           <button
             type="button"
-            onClick={() => handleLoadSample('low')}
-            className="px-3 py-1.5 text-xs font-bold rounded-xl bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200 transition-colors"
+            onClick={() => handleLoadSample('healthy')}
+            className="px-3 py-1.5 text-xs font-bold rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors"
           >
-            Low Risk Sample
+            Healthy (Low Risk)
+          </button>
+          <button
+            type="button"
+            onClick={() => handleLoadSample('moderate')}
+            className="px-3 py-1.5 text-xs font-bold rounded-xl bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition-colors"
+          >
+            Early Steatosis (Moderate)
           </button>
           <button
             type="button"
             onClick={() => handleLoadSample('high')}
             className="px-3 py-1.5 text-xs font-bold rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition-colors"
           >
-            High Risk Sample
+            Cirrhosis (High Risk)
           </button>
         </div>
       </div>

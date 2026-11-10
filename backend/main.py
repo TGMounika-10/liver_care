@@ -128,6 +128,16 @@ def predict_liver_risk(payload: PatientInput, db: Session = Depends(get_db)):
     result = "High Risk" if probability >= 50.0 else "Low Risk"
     gender_label = "Male" if payload.gender == 1 else "Female"
 
+    # Clinical Cirrhosis Stage Stratification
+    if probability < 30.0:
+        stage = "Stage 0: Normal / Minimal Risk"
+    elif probability < 50.0:
+        stage = "Stage 1: Mild Hepatic Stress / Monitor"
+    elif probability < 75.0:
+        stage = "Stage 2: Moderate Fibrosis / Steatohepatitis"
+    else:
+        stage = "Stage 3-4: Advanced Fibrosis / Cirrhosis"
+
     record = PredictionRecord(
         age=payload.age,
         gender=gender_label,
@@ -149,6 +159,7 @@ def predict_liver_risk(payload: PatientInput, db: Session = Depends(get_db)):
         result=result,
         probability=probability,
         risk_level=result,
+        stage=stage,
         database_backend=ACTIVE_DB_BACKEND,
     )
 
@@ -178,6 +189,51 @@ def get_prediction_history(db: Session = Depends(get_db)):
             )
         )
     return history_list
+
+
+@app.delete("/history/{record_id}", tags=["History"])
+def delete_prediction_record(record_id: int, db: Session = Depends(get_db)):
+    record = db.query(PredictionRecord).filter(PredictionRecord.id == record_id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail=f"Record #{record_id} not found")
+    db.delete(record)
+    db.commit()
+    return {"status": "success", "message": f"Record #{record_id} deleted successfully", "id": record_id}
+
+
+@app.get("/history/export/csv", tags=["History"])
+def export_history_csv(db: Session = Depends(get_db)):
+    import csv
+    from fastapi.responses import Response
+
+    rows = db.query(PredictionRecord).order_by(PredictionRecord.created_at.desc(), PredictionRecord.id.desc()).all()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "Record ID", "Date", "Age", "Gender", "Total Bilirubin (mg/dL)",
+        "Direct Bilirubin (mg/dL)", "Serum Albumin (g/dL)", "Alkaline Phosphatase (U/L)",
+        "SGOT/AST (U/L)", "Cholesterol (mg/dL)", "Prediction Result", "Risk Probability (%)"
+    ])
+    for r in rows:
+        writer.writerow([
+            r.id,
+            r.created_at.strftime("%Y-%m-%d %H:%M:%S") if r.created_at else "",
+            r.age,
+            r.gender,
+            r.total_bilirubin,
+            r.direct_bilirubin,
+            r.albumin,
+            r.alkaline_phosphatase,
+            r.sgot,
+            r.cholesterol,
+            r.result,
+            r.probability,
+        ])
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="livercare_patient_records.csv"'},
+    )
 
 
 @app.get("/report/{record_id}", tags=["Reports"])

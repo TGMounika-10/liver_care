@@ -94,40 +94,6 @@ export default function Sidebar({ onClose, isMobile = false }) {
             );
           })}
         </nav>
-
-        {/* ─── Quick Stats Card ─── */}
-        <div className="mx-4 mt-6 p-3.5 rounded-2xl bg-gradient-to-br from-teal-50 to-emerald-50/50 border border-teal-100/60">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-5 h-5 rounded-lg bg-teal-100 flex items-center justify-center">
-              <Activity className="w-3 h-3 text-teal-700" />
-            </div>
-            <span className="text-xs font-bold text-teal-800">System Status</span>
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="text-slate-500">Database</span>
-              <span className="font-semibold text-emerald-600 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                Supabase
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="text-slate-500">ML Model</span>
-              <span className="font-semibold text-emerald-600 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                Active
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="text-slate-500">Algorithm</span>
-              <span className="font-semibold text-slate-700">Random Forest</span>
-            </div>
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="text-slate-500">Accuracy</span>
-              <span className="font-semibold text-slate-700">~78%</span>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* ─── Sidebar Footer ─── */}

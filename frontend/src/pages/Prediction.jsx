@@ -133,13 +133,35 @@ export default function Prediction() {
                 }
               </p>
 
-              <div className={`mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold ${
-                isHighRisk
-                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                  : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-              }`}>
-                <Activity className="w-4 h-4"/>
-                <span>Risk Probability: {highRiskPct}%</span>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+                <div className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold ${
+                  isHighRisk
+                    ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                }`}>
+                  <Activity className="w-4 h-4"/>
+                  <span>Risk Probability: {highRiskPct}%</span>
+                </div>
+
+                <div className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-extrabold ${
+                  highRiskPct < 30
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                    : highRiskPct < 50
+                    ? 'bg-teal-100 text-teal-800 border border-teal-300'
+                    : highRiskPct < 75
+                    ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                    : 'bg-rose-100 text-rose-900 border border-rose-300'
+                }`}>
+                  <Shield className="w-3.5 h-3.5"/>
+                  <span>
+                    {prediction.stage || (
+                      highRiskPct < 30 ? 'Stage 0: Optimal Health' :
+                      highRiskPct < 50 ? 'Stage 1: Mild Stress / Monitor' :
+                      highRiskPct < 75 ? 'Stage 2: Moderate Fibrosis Risk' :
+                      'Stage 3-4: Advanced Cirrhosis'
+                    )}
+                  </span>
+                </div>
               </div>
             </div>
 
