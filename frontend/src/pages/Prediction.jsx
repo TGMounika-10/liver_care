@@ -87,7 +87,7 @@ export default function Prediction() {
           <button onClick={() => navigate('/patient-details')} className="btn-secondary text-xs">
             <RotateCcw className="w-3.5 h-3.5 text-slate-400"/><span>New Analysis</span>
           </button>
-          <button onClick={() => downloadReportPdf(prediction.id || 'current', patientData)}
+          <button onClick={() => downloadReportPdf(prediction.id, patientData)}
                   className="btn-primary text-xs">
             <Download className="w-3.5 h-3.5"/><span>Download PDF Report</span>
           </button>

@@ -269,7 +269,7 @@ export default function PatientDetails() {
         </div>
 
         {/* Quick Demo Fill Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Quick Fill:</span>
           <button
             type="button"

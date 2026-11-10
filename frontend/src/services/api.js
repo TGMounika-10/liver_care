@@ -134,22 +134,26 @@ export const fetchHistory = async () => {
 };
 
 export const downloadReportPdf = async (id, patientInfo) => {
+  const numericId = parseInt(id, 10);
+  if (!numericId || isNaN(numericId)) {
+    window.print();
+    return;
+  }
   try {
-    const response = await apiClient.get(`/report/${id}`, {
+    const response = await apiClient.get(`/report/${numericId}`, {
       responseType: 'blob',
     });
     const blob = new Blob([response.data], { type: 'application/pdf' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `livercare_report_${id}.pdf`);
+    link.setAttribute('download', `livercare_report_${numericId}.pdf`);
     document.body.appendChild(link);
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
   } catch (error) {
-    console.warn('Backend PDF endpoint error, generating client print preview:', error.message);
-    // Simple fallback: trigger window print dialog with report contents
+    console.warn('Backend PDF endpoint error, falling back to print dialog:', error.message);
     window.print();
   }
 };

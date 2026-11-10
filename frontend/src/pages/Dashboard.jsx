@@ -99,7 +99,7 @@ export default function Dashboard() {
     <div className="space-y-7 animate-fade-in">
 
       {/* ═══════ HERO SECTION (Matches Reference Image with Realistic 3D Liver) ═══════ */}
-      <div className="bg-white rounded-3xl p-8 lg:p-10 shadow-sm border border-slate-100 relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-8">
+      <div className="bg-white rounded-3xl p-5 sm:p-8 lg:p-10 shadow-sm border border-slate-100 relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-8">
         {/* Soft background ambient gradient */}
         <div className="absolute top-0 right-1/4 w-80 h-80 rounded-full bg-teal-50/70 blur-3xl pointer-events-none" />
 
@@ -109,12 +109,12 @@ export default function Dashboard() {
             <span>AI-Driven Hepatic Risk Diagnostic</span>
           </div>
 
-          <h1 className="text-4xl lg:text-5xl font-black text-[#132A38] tracking-tight leading-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#132A38] tracking-tight leading-tight">
             Liver Cirrhosis <br />
             <span className="text-teal-700 font-extrabold">Prediction System</span>
           </h1>
 
-          <p className="text-slate-600 text-base lg:text-lg leading-relaxed">
+          <p className="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed">
             An AI-powered solution to assess the risk of liver cirrhosis and support early healthcare decisions using routine blood test biomarkers.
           </p>
 
@@ -138,8 +138,8 @@ export default function Dashboard() {
         </div>
 
         {/* Clear Photorealistic 3D Human Liver Illustration */}
-        <div className="flex-shrink-0 relative">
-          <RealisticLiverDisplay className="w-72 h-64 lg:w-84 lg:h-72" showHotspots={true} />
+        <div className="flex-shrink-0 relative w-full sm:w-auto flex justify-center">
+          <RealisticLiverDisplay className="w-64 h-56 sm:w-72 sm:h-64 lg:w-84 lg:h-72" showHotspots={true} />
         </div>
       </div>
 
@@ -234,7 +234,7 @@ export default function Dashboard() {
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex items-center p-1 rounded-xl bg-slate-100 text-xs font-semibold">
+          <div className="flex items-center p-1 rounded-xl bg-slate-100 text-xs font-semibold overflow-x-auto max-w-full">
             <button
               onClick={() => setActiveTab('biomarkers')}
               className={`px-3.5 py-1.5 rounded-lg transition-all ${

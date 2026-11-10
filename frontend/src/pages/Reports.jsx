@@ -146,7 +146,7 @@ export default function Reports() {
       <div className="glass-card overflow-hidden">
         {/* Toolbar */}
         <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Filter className="w-4 h-4 text-slate-400"/>
             <div className="flex rounded-xl overflow-hidden border border-slate-200 text-[11px] font-semibold">
               {['all', 'low', 'high'].map(f => (
@@ -239,7 +239,7 @@ export default function Reports() {
                         )}
                       </td>
                       <td className="px-5 py-4">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <div className="w-20 h-2 bg-slate-100 rounded-full overflow-hidden">
                             <div className={`h-full rounded-full ${isHigh ? 'bg-rose-500' : 'bg-emerald-500'}`}
                                  style={{ width: `${Math.min(100, item.probability || 0)}%` }}/>

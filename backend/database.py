@@ -13,7 +13,15 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Load .env from the backend directory (ensures correct path regardless of cwd)
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/livercare_db")
+DEFAULT_SUPABASE_URL = "postgresql://postgres:Mounika%401025@db.ezdijbujbydtlwfpwdyo.supabase.co:5432/postgres"
+
+# If DATABASE_URL is not provided or points to default localhost in non-local environments, use Supabase
+_env_db = os.getenv("DATABASE_URL", "").strip()
+if not _env_db or (("localhost" in _env_db or "127.0.0.1" in _env_db) and os.getenv("VERCEL")):
+    DATABASE_URL = DEFAULT_SUPABASE_URL
+else:
+    DATABASE_URL = _env_db
+
 AUTO_SQLITE_FALLBACK = os.getenv("AUTO_SQLITE_FALLBACK", "true").lower() == "true"
 
 Base = declarative_base()
@@ -44,18 +52,23 @@ def _create_engine_with_fallback():
     db_url = DATABASE_URL.replace("postgres://", "postgresql://", 1) if DATABASE_URL.startswith("postgres://") else DATABASE_URL
 
     try:
-        eng = create_engine(db_url, pool_pre_ping=True, connect_args={"connect_timeout": 1} if "postgresql" in db_url else {})
+        eng = create_engine(
+            db_url,
+            pool_pre_ping=True,
+            connect_args={"connect_timeout": 10} if "postgresql" in db_url else {}
+        )
         with eng.connect() as conn:
             conn.execute(text("SELECT 1"))
         logger.info("Connected to PostgreSQL database successfully.")
         return eng, active_backend
     except Exception as exc:
-        if AUTO_SQLITE_FALLBACK and "postgresql" in db_url:
-            sqlite_path = os.path.join(BASE_DIR, "livercare_dev.db")
+        if AUTO_SQLITE_FALLBACK:
+            # On Vercel / Lambda, only /tmp is writable
+            is_serverless = os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME")
+            sqlite_path = "/tmp/livercare_dev.db" if is_serverless else os.path.join(BASE_DIR, "livercare_dev.db")
             sqlite_url = f"sqlite:///{sqlite_path}"
             logger.warning(
-                "PostgreSQL unreachable (%s). Falling back to local SQLite dev database at %s. "
-                "Update DATABASE_URL in .env once PostgreSQL is running.",
+                "PostgreSQL unreachable (%s). Falling back to SQLite dev database at %s.",
                 str(exc).splitlines()[0],
                 sqlite_path,
             )
@@ -70,57 +83,60 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db():
     """Create tables and seed initial sample predictions if empty."""
-    Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
     try:
-        count = db.query(PredictionRecord).count()
-        if count == 0:
-            samples = [
-                PredictionRecord(
-                    age=52,
-                    gender="Female",
-                    total_bilirubin=1.1,
-                    direct_bilirubin=0.4,
-                    albumin=3.8,
-                    alkaline_phosphatase=90.0,
-                    sgot=42.0,
-                    cholesterol=170.0,
-                    result="Low Risk",
-                    probability=18.7,
-                    created_at=datetime(2026, 11, 3, 14, 15, tzinfo=timezone.utc),
-                ),
-                PredictionRecord(
-                    age=45,
-                    gender="Male",
-                    total_bilirubin=3.8,
-                    direct_bilirubin=1.9,
-                    albumin=2.7,
-                    alkaline_phosphatase=240.0,
-                    sgot=120.0,
-                    cholesterol=230.0,
-                    result="High Risk",
-                    probability=78.2,
-                    created_at=datetime(2026, 10, 28, 11, 40, tzinfo=timezone.utc),
-                ),
-                PredictionRecord(
-                    age=60,
-                    gender="Female",
-                    total_bilirubin=0.9,
-                    direct_bilirubin=0.3,
-                    albumin=4.1,
-                    alkaline_phosphatase=85.0,
-                    sgot=32.0,
-                    cholesterol=160.0,
-                    result="Low Risk",
-                    probability=22.1,
-                    created_at=datetime(2026, 10, 20, 21, 20, tzinfo=timezone.utc),
-                ),
-            ]
-            db.add_all(samples)
-            db.commit()
-            logger.info("Seeded initial clinical records into predictions table (%s).", ACTIVE_DB_BACKEND)
-    finally:
-        db.close()
+        Base.metadata.create_all(bind=engine)
+        db = SessionLocal()
+        try:
+            count = db.query(PredictionRecord).count()
+            if count == 0:
+                samples = [
+                    PredictionRecord(
+                        age=52,
+                        gender="Female",
+                        total_bilirubin=1.1,
+                        direct_bilirubin=0.4,
+                        albumin=3.8,
+                        alkaline_phosphatase=90.0,
+                        sgot=42.0,
+                        cholesterol=170.0,
+                        result="Low Risk",
+                        probability=18.7,
+                        created_at=datetime(2026, 11, 3, 14, 15, tzinfo=timezone.utc),
+                    ),
+                    PredictionRecord(
+                        age=45,
+                        gender="Male",
+                        total_bilirubin=3.8,
+                        direct_bilirubin=1.9,
+                        albumin=2.7,
+                        alkaline_phosphatase=240.0,
+                        sgot=120.0,
+                        cholesterol=230.0,
+                        result="High Risk",
+                        probability=78.2,
+                        created_at=datetime(2026, 10, 28, 11, 40, tzinfo=timezone.utc),
+                    ),
+                    PredictionRecord(
+                        age=60,
+                        gender="Female",
+                        total_bilirubin=0.9,
+                        direct_bilirubin=0.3,
+                        albumin=4.1,
+                        alkaline_phosphatase=85.0,
+                        sgot=32.0,
+                        cholesterol=160.0,
+                        result="Low Risk",
+                        probability=22.1,
+                        created_at=datetime(2026, 10, 20, 21, 20, tzinfo=timezone.utc),
+                    ),
+                ]
+                db.add_all(samples)
+                db.commit()
+                logger.info("Seeded initial clinical records into predictions table (%s).", ACTIVE_DB_BACKEND)
+        finally:
+            db.close()
+    except Exception as exc:
+        logger.error("Database initialization notice: %s", exc)
 
 
 def get_db():

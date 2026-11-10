@@ -23,19 +23,31 @@ CHARTS_DIR = os.path.join(BASE_DIR, "data", "charts")
 ml_artifacts = {"model": None, "scaler": None}
 
 
+def ensure_ml_artifacts():
+    """Load ML model & scaler if not already loaded (supports serverless warm/cold start)."""
+    if ml_artifacts["model"] is None or ml_artifacts["scaler"] is None:
+        if os.path.exists(MODEL_PATH) and os.path.exists(SCALER_PATH):
+            try:
+                ml_artifacts["model"] = joblib.load(MODEL_PATH)
+                ml_artifacts["scaler"] = joblib.load(SCALER_PATH)
+            except Exception as e:
+                print(f"Error loading ML artifacts: {e}")
+    return ml_artifacts
+
+
+# Preload on import for serverless
+ensure_ml_artifacts()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Initialize PostgreSQL / DB schema & seed initial rows if empty
-    init_db()
+    try:
+        init_db()
+    except Exception as e:
+        print(f"DB init warning in lifespan: {e}")
 
-    # Load ML model & scaler once at startup
-    if os.path.exists(MODEL_PATH) and os.path.exists(SCALER_PATH):
-        ml_artifacts["model"] = joblib.load(MODEL_PATH)
-        ml_artifacts["scaler"] = joblib.load(SCALER_PATH)
-    else:
-        raise RuntimeError(
-            f"ML model artifacts missing at {MODEL_PATH} / {SCALER_PATH}. Run train_model.py first."
-        )
+    ensure_ml_artifacts()
     yield
 
 
@@ -47,13 +59,15 @@ app = FastAPI(
 )
 
 # Configure CORS for React frontend (local dev + Vercel deployments)
-cors_origins_env = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
+cors_origins_env = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,https://liver-care-ten.vercel.app")
 allowed_origins = [o.strip() for o in cors_origins_env.split(",") if o.strip()]
+if "https://liver-care-ten.vercel.app" not in allowed_origins:
+    allowed_origins.append("https://liver-care-ten.vercel.app")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_origin_regex=r"https://.*\.(vercel\.app|supabase\.co)",
+    allow_origins=["*"] if os.getenv("VERCEL") else allowed_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -62,6 +76,7 @@ app.add_middleware(
 
 @app.get("/", tags=["Health"])
 def root():
+    ensure_ml_artifacts()
     return {
         "service": "LiverCare AI API",
         "status": "running",
@@ -73,6 +88,7 @@ def root():
 
 @app.get("/health", tags=["Health"])
 def health_check():
+    ensure_ml_artifacts()
     return {
         "status": "healthy",
         "database_backend": ACTIVE_DB_BACKEND,
@@ -82,6 +98,7 @@ def health_check():
 
 @app.post("/predict", response_model=PredictionResponse, tags=["Prediction"])
 def predict_liver_risk(payload: PatientInput, db: Session = Depends(get_db)):
+    ensure_ml_artifacts()
     model = ml_artifacts["model"]
     scaler = ml_artifacts["scaler"]
     if model is None or scaler is None:
