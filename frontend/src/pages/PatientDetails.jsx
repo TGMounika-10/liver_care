@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   UserCircle2, RotateCcw, ArrowRight, AlertCircle, Loader2,
-  Sparkles, Info, CheckCircle2, AlertTriangle, HelpCircle,
-  Stethoscope, ShieldAlert
+  HelpCircle, Stethoscope
 } from 'lucide-react';
 import { RealHumanBodyDisplay } from '../components/Illustrations';
 import { predictRisk } from '../services/api';
@@ -130,6 +129,43 @@ export default function PatientDetails() {
     if (num > meta.normalMax) return { status: 'high', text: 'Elevated', color: 'rose' };
     if (num < meta.normalMin) return { status: 'low', text: 'Low', color: 'amber' };
     return { status: 'normal', text: 'Normal', color: 'emerald' };
+  };
+
+  const getBadgeClass = (color) => {
+    if (color === 'emerald') return 'bg-emerald-50 text-emerald-700';
+    if (color === 'amber') return 'bg-amber-50 text-amber-700';
+    return 'bg-rose-50 text-rose-700';
+  };
+
+  const toggleTooltip = (key) => {
+    setActiveTooltip((prev) => (prev === key ? null : key));
+  };
+
+  const renderTooltipButton = (key) => (
+    <button
+      type="button"
+      onClick={() => toggleTooltip(key)}
+      aria-label={`Clinical info for ${CLINICAL_FIELDS[key].label}`}
+      aria-expanded={activeTooltip === key}
+      className={`p-0.5 rounded-full transition-colors ${
+        activeTooltip === key
+          ? 'text-teal-700 bg-teal-50'
+          : 'text-slate-400 hover:text-teal-600'
+      }`}
+    >
+      <HelpCircle className="w-3.5 h-3.5" />
+    </button>
+  );
+
+  const renderTooltipBox = (key) => {
+    if (activeTooltip !== key) return null;
+    const meta = CLINICAL_FIELDS[key];
+    return (
+      <div className="mt-2 p-2.5 rounded-xl bg-teal-50/90 border border-teal-200/70 text-[11px] text-teal-900 leading-relaxed animate-fade-in">
+        <p>{meta.desc}</p>
+        <p className="mt-1 font-semibold text-teal-700">Reference: {meta.normal}</p>
+      </div>
+    );
   };
 
   const validateField = (name, value) => {
@@ -332,8 +368,9 @@ export default function PatientDetails() {
               {/* Age Field */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold text-slate-700">
-                    Age <span className="text-rose-500">*</span>
+                  <label className="text-xs font-bold text-slate-700 inline-flex items-center gap-1.5">
+                    <span>Age <span className="text-rose-500">*</span></span>
+                    {renderTooltipButton('age')}
                   </label>
                   <span className="text-[10px] text-slate-400 font-medium">18 – 85 yrs</span>
                 </div>
@@ -352,13 +389,15 @@ export default function PatientDetails() {
                 {errors.age && (
                   <p className="text-rose-500 text-xs mt-1 font-medium">{errors.age}</p>
                 )}
+                {renderTooltipBox('age')}
               </div>
 
               {/* Gender Field */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold text-slate-700">
-                    Gender <span className="text-rose-500">*</span>
+                  <label className="text-xs font-bold text-slate-700 inline-flex items-center gap-1.5">
+                    <span>Gender <span className="text-rose-500">*</span></span>
+                    {renderTooltipButton('gender')}
                   </label>
                   <span className="text-[10px] text-slate-400 font-medium">Biological sex</span>
                 </div>
@@ -371,20 +410,18 @@ export default function PatientDetails() {
                   <option value="Female">Female</option>
                   <option value="Male">Male</option>
                 </select>
+                {renderTooltipBox('gender')}
               </div>
 
               {/* Total Bilirubin */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold text-slate-700">
-                    Total Bilirubin (mg/dL) <span className="text-rose-500">*</span>
+                  <label className="text-xs font-bold text-slate-700 inline-flex items-center gap-1.5">
+                    <span>Total Bilirubin (mg/dL) <span className="text-rose-500">*</span></span>
+                    {renderTooltipButton('total_bilirubin')}
                   </label>
                   {getFieldStatus('total_bilirubin', formData.total_bilirubin) ? (
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      getFieldStatus('total_bilirubin', formData.total_bilirubin).color === 'emerald'
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : 'bg-rose-50 text-rose-700'
-                    }`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getBadgeClass(getFieldStatus('total_bilirubin', formData.total_bilirubin).color)}`}>
                       {getFieldStatus('total_bilirubin', formData.total_bilirubin).text}
                     </span>
                   ) : (
@@ -407,20 +444,18 @@ export default function PatientDetails() {
                 {errors.total_bilirubin && (
                   <p className="text-rose-500 text-xs mt-1 font-medium">{errors.total_bilirubin}</p>
                 )}
+                {renderTooltipBox('total_bilirubin')}
               </div>
 
               {/* Direct Bilirubin */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold text-slate-700">
-                    Direct Bilirubin (mg/dL) <span className="text-rose-500">*</span>
+                  <label className="text-xs font-bold text-slate-700 inline-flex items-center gap-1.5">
+                    <span>Direct Bilirubin (mg/dL) <span className="text-rose-500">*</span></span>
+                    {renderTooltipButton('direct_bilirubin')}
                   </label>
                   {getFieldStatus('direct_bilirubin', formData.direct_bilirubin) ? (
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      getFieldStatus('direct_bilirubin', formData.direct_bilirubin).color === 'emerald'
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : 'bg-rose-50 text-rose-700'
-                    }`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getBadgeClass(getFieldStatus('direct_bilirubin', formData.direct_bilirubin).color)}`}>
                       {getFieldStatus('direct_bilirubin', formData.direct_bilirubin).text}
                     </span>
                   ) : (
@@ -443,20 +478,18 @@ export default function PatientDetails() {
                 {errors.direct_bilirubin && (
                   <p className="text-rose-500 text-xs mt-1 font-medium">{errors.direct_bilirubin}</p>
                 )}
+                {renderTooltipBox('direct_bilirubin')}
               </div>
 
               {/* Albumin */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold text-slate-700">
-                    Albumin (g/dL) <span className="text-rose-500">*</span>
+                  <label className="text-xs font-bold text-slate-700 inline-flex items-center gap-1.5">
+                    <span>Albumin (g/dL) <span className="text-rose-500">*</span></span>
+                    {renderTooltipButton('albumin')}
                   </label>
                   {getFieldStatus('albumin', formData.albumin) ? (
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      getFieldStatus('albumin', formData.albumin).color === 'emerald'
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : 'bg-rose-50 text-rose-700'
-                    }`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getBadgeClass(getFieldStatus('albumin', formData.albumin).color)}`}>
                       {getFieldStatus('albumin', formData.albumin).text}
                     </span>
                   ) : (
@@ -479,20 +512,18 @@ export default function PatientDetails() {
                 {errors.albumin && (
                   <p className="text-rose-500 text-xs mt-1 font-medium">{errors.albumin}</p>
                 )}
+                {renderTooltipBox('albumin')}
               </div>
 
               {/* Alkaline Phosphatase */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold text-slate-700">
-                    Alkaline Phosphatase (U/L) <span className="text-rose-500">*</span>
+                  <label className="text-xs font-bold text-slate-700 inline-flex items-center gap-1.5">
+                    <span>Alkaline Phosphatase (U/L) <span className="text-rose-500">*</span></span>
+                    {renderTooltipButton('alkaline_phosphatase')}
                   </label>
                   {getFieldStatus('alkaline_phosphatase', formData.alkaline_phosphatase) ? (
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      getFieldStatus('alkaline_phosphatase', formData.alkaline_phosphatase).color === 'emerald'
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : 'bg-rose-50 text-rose-700'
-                    }`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getBadgeClass(getFieldStatus('alkaline_phosphatase', formData.alkaline_phosphatase).color)}`}>
                       {getFieldStatus('alkaline_phosphatase', formData.alkaline_phosphatase).text}
                     </span>
                   ) : (
@@ -515,20 +546,18 @@ export default function PatientDetails() {
                 {errors.alkaline_phosphatase && (
                   <p className="text-rose-500 text-xs mt-1 font-medium">{errors.alkaline_phosphatase}</p>
                 )}
+                {renderTooltipBox('alkaline_phosphatase')}
               </div>
 
               {/* SGOT */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold text-slate-700">
-                    SGOT (U/L) <span className="text-rose-500">*</span>
+                  <label className="text-xs font-bold text-slate-700 inline-flex items-center gap-1.5">
+                    <span>SGOT (U/L) <span className="text-rose-500">*</span></span>
+                    {renderTooltipButton('sgot')}
                   </label>
                   {getFieldStatus('sgot', formData.sgot) ? (
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      getFieldStatus('sgot', formData.sgot).color === 'emerald'
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : 'bg-rose-50 text-rose-700'
-                    }`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getBadgeClass(getFieldStatus('sgot', formData.sgot).color)}`}>
                       {getFieldStatus('sgot', formData.sgot).text}
                     </span>
                   ) : (
@@ -551,20 +580,18 @@ export default function PatientDetails() {
                 {errors.sgot && (
                   <p className="text-rose-500 text-xs mt-1 font-medium">{errors.sgot}</p>
                 )}
+                {renderTooltipBox('sgot')}
               </div>
 
               {/* Cholesterol */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold text-slate-700">
-                    Cholesterol (mg/dL) <span className="text-rose-500">*</span>
+                  <label className="text-xs font-bold text-slate-700 inline-flex items-center gap-1.5">
+                    <span>Cholesterol (mg/dL) <span className="text-rose-500">*</span></span>
+                    {renderTooltipButton('cholesterol')}
                   </label>
                   {getFieldStatus('cholesterol', formData.cholesterol) ? (
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      getFieldStatus('cholesterol', formData.cholesterol).color === 'emerald'
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : 'bg-rose-50 text-rose-700'
-                    }`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getBadgeClass(getFieldStatus('cholesterol', formData.cholesterol).color)}`}>
                       {getFieldStatus('cholesterol', formData.cholesterol).text}
                     </span>
                   ) : (
@@ -587,11 +614,12 @@ export default function PatientDetails() {
                 {errors.cholesterol && (
                   <p className="text-rose-500 text-xs mt-1 font-medium">{errors.cholesterol}</p>
                 )}
+                {renderTooltipBox('cholesterol')}
               </div>
             </div>
 
             {/* Bottom Actions */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <div className="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-slate-100">
               <button
                 type="button"
                 onClick={handleReset}
@@ -623,16 +651,27 @@ export default function PatientDetails() {
         </div>
 
         {/* Real 3D Translucent Human Body Outline Display */}
-        <div className="lg:col-span-4 bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center justify-between min-h-[500px]">
+        <div className="lg:col-span-4 bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center justify-between lg:min-h-[500px]">
           <RealHumanBodyDisplay className="w-64 h-[400px]" />
 
-          <div className="mt-4 p-3.5 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-2xl border border-teal-100 text-center w-full">
-            <p className="text-xs text-teal-800 font-bold">
-              Early Detection Saves Lives
-            </p>
-            <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
-              Accurate screening through multi-parameter hepatic enzyme profiling & ML scoring.
-            </p>
+          <div className="mt-4 space-y-2.5 w-full">
+            {formData.total_bilirubin && formData.direct_bilirubin && parseFloat(formData.total_bilirubin) > 0 && (
+              <div className="px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-[11px]">
+                <span className="font-semibold text-slate-600">Direct / Total Bilirubin Ratio:</span>
+                <span className="font-bold text-teal-700">
+                  {((parseFloat(formData.direct_bilirubin) / parseFloat(formData.total_bilirubin)) * 100).toFixed(1)}%
+                </span>
+              </div>
+            )}
+
+            <div className="p-3.5 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-2xl border border-teal-100 text-center w-full">
+              <p className="text-xs text-teal-800 font-bold">
+                Early Detection Saves Lives
+              </p>
+              <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                Accurate screening through multi-parameter hepatic enzyme profiling &amp; ML scoring.
+              </p>
+            </div>
           </div>
         </div>
       </div>

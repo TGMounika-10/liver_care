@@ -58,11 +58,12 @@ def _create_engine_with_fallback():
     # Normalize postgres:// to postgresql:// for SQLAlchemy 2.0+
     db_url = DATABASE_URL.replace("postgres://", "postgresql://", 1) if DATABASE_URL.startswith("postgres://") else DATABASE_URL
 
-    is_serverless = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME") or ":6543" in db_url)
+    is_serverless_fs = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
+    use_null_pool = bool(is_serverless_fs or ":6543" in db_url)
     engine_kwargs = {
         "connect_args": {"connect_timeout": 10} if "postgresql" in db_url else {},
     }
-    if is_serverless:
+    if use_null_pool:
         engine_kwargs["poolclass"] = NullPool
     else:
         engine_kwargs["pool_pre_ping"] = True
@@ -91,7 +92,7 @@ def _create_engine_with_fallback():
 
         if AUTO_SQLITE_FALLBACK:
             # On Vercel / Lambda, only /tmp is writable
-            sqlite_path = "/tmp/livercare_dev.db" if is_serverless else os.path.join(BASE_DIR, "livercare_dev.db")
+            sqlite_path = "/tmp/livercare_dev.db" if is_serverless_fs else os.path.join(BASE_DIR, "livercare_dev.db")
             sqlite_url = f"sqlite:///{sqlite_path}"
             logger.warning(
                 "PostgreSQL unreachable. Falling back to SQLite dev database at %s.",

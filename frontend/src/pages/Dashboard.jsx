@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowRight, ShieldCheck, Heart, Users, Info, X,
-  Sparkles, Brain, Activity, Microscope, BookOpen,
-  Beaker, BarChart3, CheckCircle2, TrendingUp, AlertTriangle,
-  Stethoscope, Layers, FileCheck, HelpCircle
+  ArrowRight, ShieldCheck, Heart, Users, X,
+  Sparkles, Brain, Microscope, BookOpen,
+  BarChart3, AlertTriangle, Stethoscope, Layers, FileCheck,
+  Database, Cpu
 } from 'lucide-react';
-import { RealisticLiverDisplay, CirrhosisComparisonDisplay } from '../components/Illustrations';
+import { RealisticLiverDisplay } from '../components/Illustrations';
+import { fetchHistory, fetchModelInfo, DEFAULT_MODEL_INFO } from '../services/api';
 
 const CLINICAL_BIOMARKERS = [
   {
@@ -94,6 +95,22 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [showLearnMore, setShowLearnMore] = useState(false);
   const [activeTab, setActiveTab] = useState('biomarkers'); // 'biomarkers' | 'stages' | 'model'
+  const [stats, setStats] = useState({ total: 0, high: 0, low: 0, loaded: false });
+  const [modelInfo, setModelInfo] = useState(DEFAULT_MODEL_INFO);
+
+  useEffect(() => {
+    let mounted = true;
+    Promise.all([fetchHistory(), fetchModelInfo()]).then(([history, mInfo]) => {
+      if (!mounted) return;
+      if (Array.isArray(history)) {
+        const high = history.filter((r) => r.result === 'High Risk' || r.probability >= 50).length;
+        const low = history.length - high;
+        setStats({ total: history.length, high, low, loaded: true });
+      }
+      if (mInfo) setModelInfo(mInfo);
+    });
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <div className="space-y-7 animate-fade-in">
@@ -125,6 +142,14 @@ export default function Dashboard() {
             >
               <span>Get Started</span>
               <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </button>
+
+            <button
+              onClick={() => navigate('/ml-analytics')}
+              className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-800 font-semibold text-sm transition-all"
+            >
+              <Brain className="w-4 h-4 text-teal-700" />
+              <span>ML & Project Info</span>
             </button>
 
             <button
@@ -187,6 +212,65 @@ export default function Dashboard() {
             <p className="text-xs font-medium text-slate-400 mt-0.5">
               Take Action
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════ PROJECT OVERVIEW & ML SNAPSHOT SECTION ═══════ */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-teal-700 text-[11px] font-bold uppercase tracking-wider">
+              <Cpu className="w-3.5 h-3.5" />
+              <span>Project Architecture &amp; Machine Learning Engine</span>
+            </div>
+            <h2 className="text-lg font-bold text-slate-800 mt-0.5">
+              {modelInfo.project?.name || 'LiverCare AI — Liver Cirrhosis Prediction System'}
+            </h2>
+            <p className="text-xs text-slate-500 mt-1 max-w-3xl leading-relaxed">
+              {modelInfo.project?.purpose} Built with React 18, FastAPI, Scikit-Learn Calibrated Random Forest, ReportLab PDF export, and Supabase Cloud PostgreSQL.
+            </p>
+          </div>
+          <button
+            onClick={() => navigate('/ml-analytics')}
+            className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-800 text-xs font-bold transition-colors self-start sm:self-center"
+          >
+            <BarChart3 className="w-4 h-4 text-teal-700" />
+            <span>Full ML Metrics &amp; Charts</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Primary ML Model</span>
+            <p className="font-bold text-slate-800 text-sm">Calibrated Random Forest</p>
+            <p className="text-[11px] text-slate-500">250 trees + Sigmoid calibration</p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Training &amp; Discrimination</span>
+            <p className="font-bold text-teal-700 text-sm">ROC-AUC {modelInfo.ml_pipeline?.roc_auc || 0.918}</p>
+            <p className="text-[11px] text-slate-500">803 patients (ILPD + Controls)</p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+              <Database className="w-3 h-3 text-teal-600" />
+              Supabase Screenings
+            </span>
+            <p className="font-bold text-slate-800 text-sm">
+              {stats.loaded ? `${stats.total} Saved Assessments` : 'Syncing records...'}
+            </p>
+            <p className="text-[11px] text-slate-500">
+              {stats.loaded ? `${stats.low} Low Risk · ${stats.high} High Risk` : 'Cloud PostgreSQL Persistence'}
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Clinical Output</span>
+            <p className="font-bold text-slate-800 text-sm">4-Stage Stratification</p>
+            <p className="text-[11px] text-slate-500">PDF clinical reports &amp; CSV export</p>
           </div>
         </div>
       </div>
@@ -347,47 +431,60 @@ export default function Dashboard() {
 
         {/* Tab 3: ML Model Pipeline Info */}
         {activeTab === 'model' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 animate-fade-in text-xs">
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
-              <div className="flex items-center gap-2 text-teal-700 font-bold">
-                <Brain className="w-4 h-4" />
-                <span>Ensemble ML Engine</span>
+          <div className="space-y-4 animate-fade-in">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs">
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
+                <div className="flex items-center gap-2 text-teal-700 font-bold">
+                  <Brain className="w-4 h-4" />
+                  <span>Calibrated ML Engine</span>
+                </div>
+                <p className="text-slate-600 leading-relaxed">
+                  Trained on the <strong>UCI ILPD (583 records) + 220 Clinical Reference Controls</strong> using <strong>RandomForestClassifier</strong> (250 trees, max_depth=7) wrapped with <strong>Sigmoid CalibratedClassifierCV</strong> for clinically accurate risk probabilities.
+                </p>
+                <div className="pt-2 border-t border-slate-200 flex justify-between font-semibold">
+                  <span className="text-slate-500">ROC-AUC Discrimination:</span>
+                  <span className="text-emerald-700">0.918 (91.8%)</span>
+                </div>
               </div>
-              <p className="text-slate-600 leading-relaxed">
-                Trained on the <strong>Indian Liver Patient Dataset (ILPD)</strong> with 583 patient records using <strong>RandomForestClassifier</strong> (100 estimators, Gini impurity criterion). Outperforms single decision trees and logistic regression by reducing prediction variance.
-              </p>
-              <div className="pt-2 border-t border-slate-200 flex justify-between font-semibold">
-                <span className="text-slate-500">Cross-Val Accuracy:</span>
-                <span className="text-emerald-700">~78.4%</span>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
+                <div className="flex items-center gap-2 text-teal-700 font-bold">
+                  <Layers className="w-4 h-4" />
+                  <span>Feature Normalization</span>
+                </div>
+                <p className="text-slate-600 leading-relaxed">
+                  Applies <strong>StandardScaler</strong> (z = (x - mean) / std) across all 8 routine blood biomarkers to harmonize clinical units (mg/dL vs U/L) and reduce enzyme skewness (ALP and SGOT).
+                </p>
+                <div className="pt-2 border-t border-slate-200 flex justify-between font-semibold">
+                  <span className="text-slate-500">Export Artifact:</span>
+                  <span className="text-teal-700">scaler.pkl + liver_model.pkl</span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
+                <div className="flex items-center gap-2 text-teal-700 font-bold">
+                  <FileCheck className="w-4 h-4" />
+                  <span>Supabase & FastAPI Cloud</span>
+                </div>
+                <p className="text-slate-600 leading-relaxed">
+                  FastAPI serverless API computes live risk & stage stratification, persisting all patient telemetry into <strong>Supabase PostgreSQL</strong> with automated ReportLab PDF & CSV exports.
+                </p>
+                <div className="pt-2 border-t border-slate-200 flex justify-between font-semibold">
+                  <span className="text-slate-500">Inference Latency:</span>
+                  <span className="text-teal-700">&lt; 25 ms</span>
+                </div>
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
-              <div className="flex items-center gap-2 text-teal-700 font-bold">
-                <Layers className="w-4 h-4" />
-                <span>Feature Normalization</span>
-              </div>
-              <p className="text-slate-600 leading-relaxed">
-                Applies <strong>StandardScaler</strong> (z = (x - mean) / std) fitted on the training split to handle disparate clinical units (mg/dL vs U/L) and mitigate skewness across enzyme distributions (ALP and SGOT).
-              </p>
-              <div className="pt-2 border-t border-slate-200 flex justify-between font-semibold">
-                <span className="text-slate-500">Export Artifact:</span>
-                <span className="text-teal-700">scaler.pkl + liver_model.pkl</span>
-              </div>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
-              <div className="flex items-center gap-2 text-teal-700 font-bold">
-                <FileCheck className="w-4 h-4" />
-                <span>PostgreSQL & API Architecture</span>
-              </div>
-              <p className="text-slate-600 leading-relaxed">
-                FastAPI backend orchestrates real-time probabilistic scoring via <code>predict_proba()</code>, persisting patient telemetry directly into <strong>PostgreSQL</strong> with automated ReportLab PDF clinical report generation.
-              </p>
-              <div className="pt-2 border-t border-slate-200 flex justify-between font-semibold">
-                <span className="text-slate-500">Inference Latency:</span>
-                <span className="text-teal-700">&lt; 25 ms</span>
-              </div>
+            <div className="flex justify-end">
+              <button
+                onClick={() => navigate('/ml-analytics')}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold transition-colors"
+              >
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span>View Full ML Benchmarks, Feature Importance & Charts</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
         )}

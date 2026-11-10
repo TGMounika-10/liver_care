@@ -98,6 +98,14 @@ def generate_clinical_pdf(record) -> io.BytesIO:
     box_bg = RED_BG if is_high else GREEN_BG
     box_border = RED_RISK if is_high else GREEN_SAFE
     label_text = "HIGH RISK" if is_high else "LOW RISK"
+    if record.probability < 30.0:
+        stage_text = "Stage 0: Normal / Minimal Risk"
+    elif record.probability < 50.0:
+        stage_text = "Stage 1: Mild Hepatic Stress / Monitor"
+    elif record.probability < 75.0:
+        stage_text = "Stage 2: Moderate Fibrosis / Steatohepatitis"
+    else:
+        stage_text = "Stage 3-4: Advanced Fibrosis / Cirrhosis"
     summary_text = (
         "Elevated likelihood of hepatic fibrosis/cirrhosis detected. Clinical follow-up recommended."
         if is_high
@@ -107,7 +115,8 @@ def generate_clinical_pdf(record) -> io.BytesIO:
     result_para = Paragraph(
         f"<font size=10 color='#64748B'><b>ML PREDICTION ASSESSMENT</b></font><br/><br/>"
         f"<font size=22 color='{status_color}'><b>{label_text}</b></font> &nbsp;&nbsp;&nbsp; "
-        f"<font size=14 color='#1E293B'><b>Risk Probability: {record.probability:.1f}%</b></font><br/><br/>"
+        f"<font size=14 color='#1E293B'><b>Risk Probability: {record.probability:.1f}%</b></font><br/>"
+        f"<font size=10 color='#0D7377'><b>Clinical Stratification: {stage_text}</b></font><br/><br/>"
         f"<font size=9.5 color='#475569'>{summary_text}</font>",
         ParagraphStyle("ResultBox", alignment=TA_CENTER, leading=14),
     )

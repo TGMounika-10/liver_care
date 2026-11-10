@@ -2,8 +2,8 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   BarChart3, CheckCircle2, XCircle, Download, RotateCcw,
-  Info, Check, AlertTriangle, TrendingUp, TrendingDown,
-  Activity, ArrowRight, Heart, Shield, FileText
+  Check, AlertTriangle, TrendingUp,
+  Activity, ArrowRight, Shield, FileText
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { LiverMascot } from '../components/Illustrations';
@@ -196,21 +196,26 @@ export default function Prediction() {
                 const val = parseFloat(patientData[key]);
                 const status = getBiomarkerStatus(key, patientData[key]);
                 const isAbnormal = status === 'abnormal';
+                const isLow = status === 'low';
                 const normalRange = `${range.normal[0]} – ${range.normal[1]} ${range.unit}`;
 
                 return (
                   <div key={key} className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
                     isAbnormal
                       ? 'bg-rose-50/50 border-rose-200/60'
+                      : isLow
+                      ? 'bg-amber-50/50 border-amber-200/60'
                       : 'bg-slate-50/50 border-slate-100'
                   }`}>
                     <div className="flex items-center gap-3">
                       <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
                         isAbnormal
                           ? 'bg-rose-100 text-rose-600'
+                          : isLow
+                          ? 'bg-amber-100 text-amber-600'
                           : 'bg-emerald-50 text-emerald-600'
                       }`}>
-                        {isAbnormal ? <TrendingUp className="w-3.5 h-3.5"/> : <Check className="w-3.5 h-3.5"/>}
+                        {isAbnormal || isLow ? <TrendingUp className="w-3.5 h-3.5"/> : <Check className="w-3.5 h-3.5"/>}
                       </div>
                       <div>
                         <p className="text-xs font-bold text-slate-700">{range.label}</p>
@@ -219,14 +224,18 @@ export default function Prediction() {
                     </div>
                     <div className="text-right">
                       <p className={`text-sm font-bold ${
-                        isAbnormal ? 'text-rose-600' : 'text-slate-800'
+                        isAbnormal ? 'text-rose-600' : isLow ? 'text-amber-700' : 'text-slate-800'
                       }`}>
                         {isNaN(val) ? '—' : val} <span className="text-[10px] font-normal text-slate-400">{range.unit}</span>
                       </p>
                       <p className={`text-[10px] font-semibold ${
-                        isAbnormal ? 'text-rose-500' : 'text-emerald-500'
+                        isAbnormal ? 'text-rose-500' : isLow ? 'text-amber-600' : 'text-emerald-500'
                       }`}>
-                        {isAbnormal ? (range.inverted ? '⬇ Low / Depleted' : '⬆ Above Normal') : '✓ Normal Range'}
+                        {isAbnormal
+                          ? (range.inverted ? '⬇ Low / Depleted' : '⬆ Above Normal')
+                          : isLow
+                          ? '⬇ Below Normal'
+                          : '✓ Normal Range'}
                       </p>
                     </div>
                   </div>
@@ -240,7 +249,7 @@ export default function Prediction() {
             <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"/>
             <div className="text-xs leading-relaxed">
               <strong>Clinical Disclaimer:</strong> This is an experimental machine learning prediction
-              based on the Indian Liver Patient Dataset (ILPD) and a Random Forest classifier (~78% accuracy).
+              trained on the Indian Liver Patient Dataset (ILPD, 583 records) augmented with 220 clinical healthy controls using a Calibrated Random Forest classifier (ROC-AUC 0.918).
               It is <strong>not</strong> a medical diagnosis. Always consult a qualified hepatologist or physician
               for clinical decisions. Lab values should be interpreted in the context of the patient's full medical history.
             </div>

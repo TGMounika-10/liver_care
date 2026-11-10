@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#14B8A6"/>
+      <stop offset="100%" stop-color="#0D7377"/>
+    </linearGradient>
+    <linearGradient id="liverGrad" x1="16" y1="20" x2="48" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#CCFBF1"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded Square Medical App Icon -->
+  <rect width="64" height="64" rx="16" fill="url(#bgGrad)"/>
+  <rect x="2" y="2" width="60" height="60" rx="14" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="1.5"/>
+
+  <!-- Stylized Anatomical Liver Silhouette -->
+  <path d="M16 33C14 25 20 19 31 19C41 19 49 23 50 29C51 34 46 39 39 40C35 41 32 45 26 45C20 45 17 39 16 33Z"
+        fill="url(#liverGrad)"/>
+
+  <!-- ECG / Biomarker Diagnostic Pulse Line -->
+  <path d="M18 32H25L28 25L33 38L36 30H46"
+        stroke="#0D7377" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Medical Plus Badge -->
+  <circle cx="48" cy="48" r="10" fill="#FFFFFF"/>
+  <path d="M48 43.5V52.5M43.5 48H52.5" stroke="#0D7377" stroke-width="2.6" stroke-linecap="round"/>
+</svg>

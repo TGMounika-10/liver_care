@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, Heart } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { LeafDecoration } from './Illustrations';
 
@@ -11,9 +11,11 @@ export default function Layout({ children }) {
       {/* ─── Mobile Header (Visible on < md screens) ─── */}
       <header className="md:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center shadow-sm">
-            <Heart className="w-4 h-4 text-white fill-white/30" strokeWidth={2.2} />
-          </div>
+          <img
+            src="/favicon.svg"
+            alt="LiverCare AI Logo"
+            className="w-8 h-8 rounded-xl shadow-sm"
+          />
           <span className="font-extrabold text-base tracking-tight">
             <span className="text-teal-700">Liver</span>
             <span className="text-teal-600">Care</span>

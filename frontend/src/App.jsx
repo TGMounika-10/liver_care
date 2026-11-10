@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import PatientDetails from './pages/PatientDetails';
 import Prediction from './pages/Prediction';
 import Reports from './pages/Reports';
+import MLAnalytics from './pages/MLAnalytics';
 
 export default function App() {
   return (
@@ -15,10 +16,10 @@ export default function App() {
           <Route path="/patient-details" element={<PatientDetails />} />
           <Route path="/prediction" element={<Prediction />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/ml-analytics" element={<MLAnalytics />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>
     </Router>
   );
 }
-

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   FileText, Download, Lightbulb, Loader2, Search,
   Calendar, TrendingUp, TrendingDown, Filter,
-  ChevronLeft, ChevronRight, BarChart3, Activity,
-  Users, ArrowUpDown, RefreshCcw, Heart, Trash2, FileSpreadsheet
+  ChevronLeft, ChevronRight, Activity,
+  Users, ArrowUpDown, RefreshCcw, Heart, Trash2, FileSpreadsheet, Eye, X
 } from 'lucide-react';
 import { fetchHistory, downloadReportPdf, deleteHistoryRecord, exportHistoryCsv, SAMPLE_HISTORY } from '../services/api';
 
@@ -11,6 +11,7 @@ export default function Reports() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState(null);
+  const [selectedRecord, setSelectedRecord] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterResult, setFilterResult] = useState('all'); // 'all', 'low', 'high'
   const [sortOrder, setSortOrder] = useState('desc'); // 'desc' (newest first), 'asc'
@@ -23,7 +24,7 @@ export default function Reports() {
     setLoading(true);
     try {
       const data = await fetchHistory();
-      setRecords(data?.length > 0 ? data : SAMPLE_HISTORY);
+      setRecords(Array.isArray(data) ? data : SAMPLE_HISTORY);
     } catch { setRecords(SAMPLE_HISTORY); }
     finally { setLoading(false); }
   };
@@ -67,7 +68,8 @@ export default function Reports() {
     });
 
   const totalPages = Math.max(1, Math.ceil(processedRecords.length / perPage));
-  const pageRecords = processedRecords.slice((currentPage - 1) * perPage, currentPage * perPage);
+  const safePage = Math.min(currentPage, totalPages);
+  const pageRecords = processedRecords.slice((safePage - 1) * perPage, safePage * perPage);
 
   // Stats
   const totalHigh = records.filter(r => r.result === 'High Risk').length;
@@ -102,9 +104,10 @@ export default function Reports() {
             <span>Export CSV</span>
           </button>
           <button onClick={() => records.length > 0 && handleDownload(records[0])}
-                  className="btn-primary text-xs">
+                  disabled={records.length === 0}
+                  className="btn-primary text-xs disabled:opacity-50 disabled:cursor-not-allowed">
             <Download className="w-3.5 h-3.5"/>
-            <span>Download All Reports</span>
+            <span>Latest PDF Report</span>
           </button>
         </div>
       </div>
@@ -230,14 +233,16 @@ export default function Reports() {
                   const isHigh = item.result === 'High Risk' || item.probability >= 50;
                   const probStr = typeof item.probability === 'number' ? `${item.probability.toFixed(1)}%` : item.probability;
                   const dateStr = item.formatted_date || item.created_at || '—';
-                  const rowNum = (currentPage - 1) * perPage + idx + 1;
+                  const rowNum = (safePage - 1) * perPage + idx + 1;
 
                   return (
                     <tr key={item.id || idx} className="hover:bg-slate-50/60 transition-colors">
                       <td className="px-5 py-4 font-bold text-slate-400 text-xs">{rowNum}</td>
-                      <td className="px-5 py-4 text-xs text-slate-600 flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-slate-400"/>
-                        {dateStr}
+                      <td className="px-5 py-4 text-xs text-slate-600 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-slate-400 flex-shrink-0"/>
+                          <span>{dateStr}</span>
+                        </div>
                       </td>
                       <td className="px-5 py-4 font-semibold text-slate-700 text-sm">{item.age}</td>
                       <td className="px-5 py-4 text-xs text-slate-600">{item.gender || '—'}</td>
@@ -263,6 +268,13 @@ export default function Reports() {
                       </td>
                       <td className="px-5 py-4 text-center">
                         <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => setSelectedRecord(item)}
+                            title="View Patient Biomarkers"
+                            className="w-8 h-8 rounded-lg bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-700 inline-flex items-center justify-center transition-colors"
+                          >
+                            <Eye className="w-4 h-4"/>
+                          </button>
                           <button
                             onClick={() => handleDownload(item)}
                             disabled={downloadingId === item.id}
@@ -295,12 +307,12 @@ export default function Reports() {
         {totalPages > 1 && (
           <div className="p-4 border-t border-slate-100 flex items-center justify-between">
             <p className="text-[11px] text-slate-400 font-medium">
-              Showing {(currentPage - 1) * perPage + 1}–{Math.min(currentPage * perPage, processedRecords.length)} of {processedRecords.length}
+              Showing {(safePage - 1) * perPage + 1}–{Math.min(safePage * perPage, processedRecords.length)} of {processedRecords.length}
             </p>
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
+                disabled={safePage === 1}
                 className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 disabled:opacity-40 transition-colors"
               >
                 <ChevronLeft className="w-4 h-4 text-slate-600"/>
@@ -309,7 +321,7 @@ export default function Reports() {
                 <button key={p}
                   onClick={() => setCurrentPage(p)}
                   className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
-                    currentPage === p
+                    safePage === p
                       ? 'bg-teal-600 text-white shadow-sm'
                       : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
@@ -319,7 +331,7 @@ export default function Reports() {
               ))}
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
+                disabled={safePage === totalPages}
                 className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 disabled:opacity-40 transition-colors"
               >
                 <ChevronRight className="w-4 h-4 text-slate-600"/>
@@ -346,6 +358,95 @@ export default function Reports() {
           </p>
         </div>
       </div>
+
+      {/* ─── Patient Biomarkers Detail Modal ─── */}
+      {selectedRecord && (
+        <div
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedRecord(null)}
+        >
+          <div
+            className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 animate-fade-in space-y-5 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="font-bold text-slate-800 text-base">
+                  Patient Record #{selectedRecord.id}
+                </h3>
+                <p className="text-xs text-slate-400">
+                  {selectedRecord.formatted_date || selectedRecord.created_at}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedRecord(null)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+              >
+                <X className="w-5 h-5"/>
+              </button>
+            </div>
+
+            <div className={`p-4 rounded-2xl flex items-center justify-between border ${
+              selectedRecord.result === 'High Risk' || selectedRecord.probability >= 50
+                ? 'bg-rose-50 border-rose-200 text-rose-800'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+            }`}>
+              <div>
+                <p className="text-[11px] font-bold uppercase opacity-75">ML Assessment</p>
+                <p className="text-xl font-black">{selectedRecord.result}</p>
+                <p className="text-[11px] font-semibold mt-0.5 opacity-85">
+                  {selectedRecord.probability < 30
+                    ? 'Stage 0: Normal / Minimal Risk'
+                    : selectedRecord.probability < 50
+                    ? 'Stage 1: Mild Hepatic Stress'
+                    : selectedRecord.probability < 75
+                    ? 'Stage 2: Moderate Fibrosis Risk'
+                    : 'Stage 3-4: Advanced Cirrhosis'}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-[11px] font-bold uppercase opacity-75">Risk Score</p>
+                <p className="text-xl font-black">{Number(selectedRecord.probability).toFixed(1)}%</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              {[
+                { label: 'Age', value: `${selectedRecord.age} yrs`, norm: '18 – 85 yrs', abnormal: false },
+                { label: 'Gender', value: selectedRecord.gender, norm: 'Biological sex', abnormal: false },
+                { label: 'Total Bilirubin', value: `${selectedRecord.total_bilirubin} mg/dL`, norm: '0.1 – 1.2', abnormal: selectedRecord.total_bilirubin > 1.2 },
+                { label: 'Direct Bilirubin', value: `${selectedRecord.direct_bilirubin} mg/dL`, norm: '0.0 – 0.3', abnormal: selectedRecord.direct_bilirubin > 0.3 },
+                { label: 'Serum Albumin', value: `${selectedRecord.albumin} g/dL`, norm: '3.5 – 5.0', abnormal: selectedRecord.albumin < 3.5 },
+                { label: 'Alk. Phosphatase', value: `${selectedRecord.alkaline_phosphatase} U/L`, norm: '44 – 147', abnormal: selectedRecord.alkaline_phosphatase > 147 },
+                { label: 'SGOT (AST)', value: `${selectedRecord.sgot} U/L`, norm: '8 – 48', abnormal: selectedRecord.sgot > 48 },
+                { label: 'Cholesterol', value: `${selectedRecord.cholesterol} mg/dL`, norm: '120 – 200', abnormal: selectedRecord.cholesterol > 200 },
+              ].map((m, i) => (
+                <div key={i} className={`p-3 rounded-xl border ${m.abnormal ? 'bg-rose-50/70 border-rose-200' : 'bg-slate-50 border-slate-100'}`}>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">{m.label}</span>
+                  <p className={`text-sm font-bold mt-0.5 ${m.abnormal ? 'text-rose-700' : 'text-slate-800'}`}>{m.value}</p>
+                  <p className="text-[10px] text-slate-400">Ref: {m.norm}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                onClick={() => setSelectedRecord(null)}
+                className="btn-secondary text-xs"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => handleDownload(selectedRecord)}
+                className="btn-primary text-xs"
+              >
+                <Download className="w-3.5 h-3.5"/>
+                <span>Download PDF Report</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

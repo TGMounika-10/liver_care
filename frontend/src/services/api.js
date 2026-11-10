@@ -200,5 +200,70 @@ export const exportHistoryCsv = async () => {
   }
 };
 
+export const DEFAULT_MODEL_INFO = {
+  project: {
+    name: 'LiverCare AI — Liver Cirrhosis Prediction System',
+    version: '1.0.0',
+    purpose: 'Clinical decision-support platform for evaluating liver cirrhosis risk from routine Blood Liver Function Test (LFT) biomarkers.',
+    stack: {
+      frontend: 'React 18, Vite, Tailwind CSS, Recharts, Axios',
+      backend: 'Python 3.11, FastAPI, Scikit-Learn, ReportLab PDF',
+      database: 'PostgreSQL (Supabase)',
+      hosting: 'Vercel Serverless + Supabase Cloud PostgreSQL',
+    },
+  },
+  ml_pipeline: {
+    primary_model: 'Calibrated Random Forest (Sigmoid + 250 Estimators, max_depth=7)',
+    preprocessing: 'StandardScaler (Z-score normalization)',
+    calibration: 'CalibratedClassifierCV (method="sigmoid") to align risk probabilities with clinical reference ranges',
+    dataset: 'UCI Indian Liver Patient Dataset (583 patients) + 220 Verified Normal Reference Controls (803 total records)',
+    feature_count: 8,
+    roc_auc: 0.918,
+    risk_thresholds: [
+      { range: '0% - 29.9%', label: 'Low Risk', stage: 'Stage 0: Normal / Minimal Risk' },
+      { range: '30% - 49.9%', label: 'Low Risk (Monitor)', stage: 'Stage 1: Mild Hepatic Stress' },
+      { range: '50% - 74.9%', label: 'High Risk', stage: 'Stage 2: Moderate Fibrosis / Steatohepatitis' },
+      { range: '75% - 100%', label: 'High Risk (Critical)', stage: 'Stage 3-4: Advanced Fibrosis / Cirrhosis' },
+    ],
+  },
+  model_comparison: [
+    { model: 'Calibrated Random Forest (Production)', accuracy: 76.88, precision: 75.56, recall: 81.93, f1_score: 0.7861, selected: true },
+    { model: 'SVM (RBF Kernel)', accuracy: 80.62, precision: 77.08, recall: 89.16, f1_score: 0.8268, selected: false },
+    { model: 'Random Forest (Base)', accuracy: 77.50, precision: 74.23, recall: 86.75, f1_score: 0.8000, selected: false },
+    { model: 'Logistic Regression', accuracy: 78.12, precision: 79.27, recall: 78.31, f1_score: 0.7879, selected: false },
+    { model: 'Decision Tree', accuracy: 76.25, precision: 71.84, recall: 89.16, f1_score: 0.7957, selected: false },
+  ],
+  feature_importance: [
+    { key: 'alkaline_phosphatase', feature: 'Alkaline Phosphatase (ALP)', importance: 32.56 },
+    { key: 'albumin', feature: 'Serum Albumin', importance: 14.89 },
+    { key: 'sgot', feature: 'SGOT (AST)', importance: 13.16 },
+    { key: 'total_bilirubin', feature: 'Total Bilirubin', importance: 12.93 },
+    { key: 'direct_bilirubin', feature: 'Direct Bilirubin', importance: 11.87 },
+    { key: 'cholesterol', feature: 'Total Cholesterol', importance: 7.56 },
+    { key: 'age', feature: 'Patient Age', importance: 6.03 },
+    { key: 'gender', feature: 'Biological Sex', importance: 0.99 },
+  ],
+  charts: [
+    { name: 'ROC Curve', file: 'roc_curve.png', desc: 'Receiver Operating Characteristic curve showing discrimination power.' },
+    { name: 'Confusion Matrix', file: 'confusion_matrix.png', desc: 'True vs Predicted classification breakdown on the validation split.' },
+    { name: 'Feature Importance', file: 'feature_importance.png', desc: 'Relative biomarker influence inside the Random Forest trees.' },
+    { name: 'Correlation Heatmap', file: 'correlation_heatmap.png', desc: 'Pearson correlation matrix across the 8 biomarkers and target.' },
+    { name: 'Class Balance', file: 'class_balance.png', desc: 'Distribution of Liver Disease vs Healthy Control cohorts.' },
+    { name: 'Bilirubin Boxplots', file: 'bilirubin_boxplots.png', desc: 'Total & Direct Bilirubin spread across clinical diagnosis classes.' },
+  ],
+};
+
+export const fetchModelInfo = async () => {
+  try {
+    const response = await apiClient.get('/model-info');
+    return response.data;
+  } catch (error) {
+    console.warn('Using default model info:', error.message);
+    return DEFAULT_MODEL_INFO;
+  }
+};
+
+export const getChartUrl = (filename) => `${BASE_URL}/charts/${filename}`;
+
 export default apiClient;
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, UserCircle2, Activity, FileBarChart, Heart, X } from 'lucide-react';
+import { Home, UserCircle2, Activity, FileBarChart, Brain, X } from 'lucide-react';
 import { LeafDecoration } from './Illustrations';
 
 const navItems = [
@@ -8,6 +8,7 @@ const navItems = [
   { name: 'Patient Details', path: '/patient-details', icon: UserCircle2 },
   { name: 'Prediction', path: '/prediction', icon: Activity },
   { name: 'Reports & History', path: '/reports', icon: FileBarChart },
+  { name: 'ML & Project Info', path: '/ml-analytics', icon: Brain },
 ];
 
 export default function Sidebar({ onClose, isMobile = false }) {
@@ -23,16 +24,12 @@ export default function Sidebar({ onClose, isMobile = false }) {
       <div>
         <div className="px-6 pt-6 pb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* Logo Mark */}
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center shadow-md shadow-teal-700/20 relative flex-shrink-0">
-              <Heart className="w-5 h-5 text-white fill-white/30" strokeWidth={2.2} />
-              {/* Medical cross overlay */}
-              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-white border border-teal-200 flex items-center justify-center">
-                <svg viewBox="0 0 10 10" className="w-2 h-2">
-                  <path d="M5 2V8M2 5H8" stroke="#0D7377" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </div>
-            </div>
+            {/* Project Icon Mark */}
+            <img
+              src="/favicon.svg"
+              alt="LiverCare AI Logo"
+              className="w-10 h-10 rounded-2xl shadow-md shadow-teal-700/20 flex-shrink-0"
+            />
             <div>
               <h1 className="text-[17px] font-extrabold tracking-tight leading-none">
                 <span className="text-teal-700">Liver</span>
@@ -108,7 +105,7 @@ export default function Sidebar({ onClose, isMobile = false }) {
           </p>
         </div>
         <p className="text-[9px] text-slate-400 text-center mt-2 font-medium">
-          LiverCare AI v1.0 · Supabase + ML
+          LiverCare AI v1.0 · Clinical Decision Support
         </p>
       </div>
     </aside>
