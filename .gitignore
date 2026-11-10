@@ -1,0 +1,57 @@
+# ==========================================
+# LiverCare AI — .gitignore
+# ==========================================
+
+# --- Node / React / Vite (Frontend) ---
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.vite/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Python / FastAPI / ML (Backend) ---
+backend/.venv/
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.matplotlib/
+.ipynb_checkpoints/
+
+# --- Environment Variables & Secrets ---
+.env
+backend/.env
+frontend/.env
+*.env.local
+
+# --- Local Dev Databases & Generated Test Artifacts ---
+*.db
+*.sqlite
+*.sqlite3
+backend/livercare_dev.db
+backend/test_report*.pdf
+*.log
+
+# --- OS & IDE Files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+
